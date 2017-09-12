@@ -1,7 +1,11 @@
+// load required modules
 require("dotenv").config();
 const request = require("request");
 var fs = require("fs");
 
+// function that generates an object to pass into the server request
+// specifically using the github contributors api to return a list of 
+// github repo contributors for a specific owner repo name pair
 function getOptionsForRepo(owner, repo) {
   return {
     url: `https://api.github.com/repos/${owner}/${repo}/contributors`,
@@ -15,6 +19,8 @@ function getOptionsForRepo(owner, repo) {
   };
 }
 
+// function that requests from the server to get repo contributor data
+// from github
 function getRepoContributors(repoOwner, repoName, cb) {
 
   if (!repoOwner || !repoName) {
@@ -45,6 +51,9 @@ function getRepoContributors(repoOwner, repoName, cb) {
   });
 }
 
+// function that downloads the images of each contributor and writes
+// the images to the directory called avatars (which is 
+// created if it doesn't exist)
 function downloadImageByURL(url, filePath) {
   if (!fs.existsSync("./avatars")) {
     fs.mkdirSync("./avatars");
@@ -62,6 +71,10 @@ function downloadImageByURL(url, filePath) {
     .pipe(fs.createWriteStream(filePath));
 }
 
+// call the main function using two command line arguments for the
+// repo owener and name (in that order), to grab a list of contributors
+// for that repo, and downloads and saves the images of those contributors
+// to the directory avatars
 getRepoContributors(process.argv[2], process.argv[3], (name, url) => {
   for (let i = 0; i < name.length; i++) {
     downloadImageByURL(url[i], `./avatars/${name[i]}.png`);
