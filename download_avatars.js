@@ -16,6 +16,12 @@ function getOptionsForRepo(owner, repo) {
 }
 
 function getRepoContributors(repoOwner, repoName, cb) {
+
+  if (!repoOwner || !repoName) {
+    console.log('You need to enter both a repository owner and name as arguments');
+    return;
+  }
+
   const options = getOptionsForRepo(repoOwner, repoName);
 
   request(options, function(error, response, body) {
