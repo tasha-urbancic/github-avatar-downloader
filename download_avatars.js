@@ -39,16 +39,9 @@ function getRepoContributors(repoOwner, repoName, cb) {
   });
 }
 
-getRepoContributors("jquery", "jquery", (name, url) => {
-  for (let i = 0; i < name.length; i++) {
-    downloadImageByURL(name[i], url[i], `./avatars/${name[i]}.png`);
-  }
-});
-
-function downloadImageByURL(name, url, filePath) {
-
-  if (!fs.existsSync('./avatars')){
-    fs.mkdirSync('./avatars');
+function downloadImageByURL(url, filePath) {
+  if (!fs.existsSync("./avatars")) {
+    fs.mkdirSync("./avatars");
   }
 
   request
@@ -61,8 +54,13 @@ function downloadImageByURL(name, url, filePath) {
       console.log("Response Status Message: ", response.statusMessage);
       console.log("Response Content Type: ", response.headers["content-type"]);
     })
-    .on("end", () => {
-      console.log(`Download Complete for ${name}`);
-    })
     .pipe(fs.createWriteStream(filePath));
 }
+
+getRepoContributors("jquery", "jquery", (name, url) => {
+  for (let i = 0; i < name.length; i++) {
+    downloadImageByURL(url[i], `./avatars/${name[i]}.png`);
+  }
+});
+
+
