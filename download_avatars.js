@@ -44,8 +44,7 @@ function downloadImageByURL(url, filePath) {
     fs.mkdirSync("./avatars");
   }
 
-  request
-    .get(url)
+  request.get(url)
     .on("error", err => {
       throw err;
     })
@@ -57,7 +56,7 @@ function downloadImageByURL(url, filePath) {
     .pipe(fs.createWriteStream(filePath));
 }
 
-getRepoContributors("jquery", "jquery", (name, url) => {
+getRepoContributors(process.argv[2], process.argv[3], (name, url) => {
   for (let i = 0; i < name.length; i++) {
     downloadImageByURL(url[i], `./avatars/${name[i]}.png`);
   }
