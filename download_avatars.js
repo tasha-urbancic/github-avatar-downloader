@@ -1,5 +1,6 @@
 require("dotenv").config();
 const request = require("request");
+var fs = require("fs");
 
 function getOptionsForRepo(owner, repo) {
   return {
@@ -35,34 +36,33 @@ function getRepoContributors(repoOwner, repoName, cb) {
     });
 
     cb(contributorName, contributorUrl);
-    
   });
 }
 
-getRepoContributors("jquery", "jquery", function(name, url){
+getRepoContributors("jquery", "jquery", (name, url) => {
   for (let i = 0; i < name.length; i++) {
-    downloadImageByURL(url[i], `./avatars/${name[i]}.png`)
+    downloadImageByURL(name[i], url[i], `./avatars/${name[i]}.png`);
   }
 });
 
-function downloadImageByURL(url, name, filePath) {
-  request.get(url)
-  .on("error", function(err) {
-    throw err;
-  })
-  .on("response", function(response) {
-    console.log("Response Status Code: ", response.statusCode);
-    console.log("Response Status Message: ", response.statusMessage);
-    console.log("Response Content Type: ", response.headers["content-type"]);
-  })
-  .on('end', () => {
-    console.log("Download Complete.");
-  })
-  .pipe(fs.createWriteStream(filePath).on('end', () => {
-    console.log('Done Writing!');
-  }));
+function downloadImageByURL(name, url, filePath) {
+
+  if (!fs.existsSync('./avatars')){
+    fs.mkdirSync('./avatars');
+  }
+
+  request
+    .get(url)
+    .on("error", err => {
+      throw err;
+    })
+    .on("response", response => {
+      console.log("Response Status Code: ", response.statusCode);
+      console.log("Response Status Message: ", response.statusMessage);
+      console.log("Response Content Type: ", response.headers["content-type"]);
+    })
+    .on("end", () => {
+      console.log(`Download Complete for ${name}`);
+    })
+    .pipe(fs.createWriteStream(filePath));
 }
-
-
-
-
