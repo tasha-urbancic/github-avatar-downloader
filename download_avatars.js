@@ -1,30 +1,68 @@
-// > GET /repos/jquery/jquery/contributors HTTP/1.1
-// > Host: api.github.com
-// > User-Agent: curl/7.47.0
-// > Accept: */*
+require("dotenv").config();
+const request = require("request");
 
-// [{
+function getOptionsForRepo(owner, repo) {
+  return {
+    url: `https://api.github.com/repos/${owner}/${repo}/contributors`,
+    qs: {
+      access_token: process.env.GITHUB_TOKEN,
+      sort: "pushed"
+    },
+    headers: {
+      "User-Agent": "GitHub Avatar Downloader -- Student Project"
+    }
+  };
+}
 
-// },
-// {
-  "login": "pbakaus",
-//   "id": 43004,
-  "avatar_url": "https://avatars1.githubusercontent.com/u/43004?v=4",
-//   "gravatar_id": "",
-//   "url": "https://api.github.com/users/pbakaus",
-//   "html_url": "https://github.com/pbakaus",
-//   "followers_url": "https://api.github.com/users/pbakaus/followers",
-//   "following_url": "https://api.github.com/users/pbakaus/following{/other_user}",
-//   "gists_url": "https://api.github.com/users/pbakaus/gists{/gist_id}",
-//   "starred_url": "https://api.github.com/users/pbakaus/starred{/owner}{/repo}",
-//   "subscriptions_url": "https://api.github.com/users/pbakaus/subscriptions",
-//   "organizations_url": "https://api.github.com/users/pbakaus/orgs",
-//   "repos_url": "https://api.github.com/users/pbakaus/repos",
-//   "events_url": "https://api.github.com/users/pbakaus/events{/privacy}",
-//   "received_events_url": "https://api.github.com/users/pbakaus/received_events",
-//   "type": "User",
-//   "site_admin": false,
-//   "contributions": 9
-// }
-// ]
+function getRepoContributors(repoOwner, repoName, cb) {
+  const options = getOptionsForRepo(repoOwner, repoName);
+
+  request(options, function(error, response, body) {
+    // guard statement
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    const data = JSON.parse(body);
+
+    let contributorName = [];
+    let contributorUrl = [];
+
+    data.forEach(contributor => {
+      contributorName.push(contributor.login);
+      contributorUrl.push(contributor.avatar_url);
+    });
+
+    cb(contributorName, contributorUrl);
+    
+  });
+}
+
+getRepoContributors("jquery", "jquery", function(name, url){
+  for (let i = 0; i < name.length; i++) {
+    downloadImageByURL(url[i], `./avatars/${name[i]}.png`)
+  }
+});
+
+function downloadImageByURL(url, name, filePath) {
+  request.get(url)
+  .on("error", function(err) {
+    throw err;
+  })
+  .on("response", function(response) {
+    console.log("Response Status Code: ", response.statusCode);
+    console.log("Response Status Message: ", response.statusMessage);
+    console.log("Response Content Type: ", response.headers["content-type"]);
+  })
+  .on('end', () => {
+    console.log("Download Complete.");
+  })
+  .pipe(fs.createWriteStream(filePath).on('end', () => {
+    console.log('Done Writing!');
+  }));
+}
+
+
+
 

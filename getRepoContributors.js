@@ -2,7 +2,7 @@ require("dotenv").config();
 const request = require("request");
 
 function getOptionsForRepo(owner, repo) {
-  const options = {
+  return {
     url: `https://api.github.com/repos/${owner}/${repo}/contributors`,
     qs: {
       access_token: process.env.GITHUB_TOKEN,
@@ -12,7 +12,6 @@ function getOptionsForRepo(owner, repo) {
       "User-Agent": "GitHub Avatar Downloader -- Student Project"
     }
   };
-  return options;
 }
 
 function getRepoContributors(repoOwner, repoName, cb) {
@@ -27,19 +26,43 @@ function getRepoContributors(repoOwner, repoName, cb) {
 
     const data = JSON.parse(body);
 
-    // data.forEach(contributor => {
-    //   console.log(contributor.login, contributor.avatar_url);
-    // });
+    let contributorName = [];
+    let contributorUrl = [];
 
-    return data;
+    data.forEach(contributor => {
+      contributorName.push(contributor.login);
+      contributorUrl.push(contributor.avatar_url);
+    });
+
+    cb(contributorName, contributorUrl);
+    
   });
 }
 
-const repoData = getRepoContributors("jquery", "jquery", function(err, result) {
-  console.log("Errors:", err);
-  console.log("Result:", result);
+getRepoContributors("jquery", "jquery", function(name, url){
+  for (let i = 0; i < name.length; i++) {
+    downloadImageByURL(url[i], `./avatars/${name[i]}.png`)
+  }
 });
 
-// repoData.forEach(contributor => {
-//   console.log(contributor.login, contributor.avatar_url);
-// });
+function downloadImageByURL(url, name, filePath) {
+  request.get(url)
+  .on("error", function(err) {
+    throw err;
+  })
+  .on("response", function(response) {
+    console.log("Response Status Code: ", response.statusCode);
+    console.log("Response Status Message: ", response.statusMessage);
+    console.log("Response Content Type: ", response.headers["content-type"]);
+  })
+  .on('end', () => {
+    console.log("Download Complete.");
+  })
+  .pipe(fs.createWriteStream(filePath).on('end', () => {
+    console.log('Done Writing!');
+  }));
+}
+
+
+
+
